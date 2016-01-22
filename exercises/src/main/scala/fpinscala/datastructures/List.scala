@@ -13,15 +13,52 @@ object List { // `List` companion object. Contains functions for creating and wo
     case Cons(x,xs) => x + sum(xs) // The sum of a list starting with `x` is `x` plus the sum of the rest of the list.
   }
 
+  def sumTailRec(ints: List[Int]): Int = {
+    @annotation.tailrec
+    def loop(xs: List[Int], acc: Int): Int = xs match {
+      case Nil => acc
+      case Cons(y,ys) => loop(ys, acc + y)
+    }
+    loop(ints, 0)
+  }
+
+  def fill[A](n: Int, a: A): List[A] = {
+    @annotation.tailrec
+    def loop(size: Int, x: A, acc: List[A]): List[A] = {
+      if (size == 0) acc
+      else loop(size-1, a, Cons(a,acc))
+    }
+    loop(n, a, Nil)
+  }
+
   def product(ds: List[Double]): Double = ds match {
     case Nil => 1.0
     case Cons(0.0, _) => 0.0
     case Cons(x,xs) => x * product(xs)
   }
 
+  def productTailRec(ds: List[Double]): Double = {
+    @annotation.tailrec
+    def loop(xs: List[Double], acc: Double): Double = xs match {
+      case Nil => acc
+      case Cons(y, ys) => loop(ys, y * acc)
+    }
+    loop(ds, 1.0)
+  }
+
   def apply[A](as: A*): List[A] = // Variadic function syntax
     if (as.isEmpty) Nil
     else Cons(as.head, apply(as.tail: _*))
+
+  // todo : this returns the list in reverse
+  def applyTailRec[A](as: A*): List[A] = {
+    @annotation.tailrec
+    def loop(acc: List[A], xs: A*): List[A] = {
+      if (xs.isEmpty) acc
+      else loop(Cons(xs.head, acc), xs.tail: _*)
+    }
+    loop(Nil, as: _*)
+  }
 
   val x = List(1,2,3,4,5) match {
     case Cons(x, Cons(2, Cons(4, _))) => x
@@ -50,13 +87,29 @@ object List { // `List` companion object. Contains functions for creating and wo
     foldRight(ns, 1.0)(_ * _) // `_ * _` is more concise notation for `(x,y) => x * y`; see sidebar
 
 
-  def tail[A](l: List[A]): List[A] = sys.error("todo")
+  def tail[A](l: List[A]): List[A] = l match {
+    case Nil => throw new Exception
+    case Cons(x, xs) => xs
+  }
 
-  def setHead[A](l: List[A], h: A): List[A] = sys.error("todo")
+  def setHead[A](l: List[A], h: A): List[A] = l match {
+    case Nil => throw new Exception
+    case Cons(x, xs) => Cons(h, xs)
+  }
 
-  def drop[A](l: List[A], n: Int): List[A] = sys.error("todo")
+  def drop[A](l: List[A], n: Int): List[A] = {
+    if (n == 0) l
+    else l match {
+      case Nil => throw new Exception
+      case Cons(x, xs) => drop(xs, n-1)
+    }
+  }
 
-  def dropWhile[A](l: List[A], f: A => Boolean): List[A] = sys.error("todo")
+  def dropWhile[A](l: List[A], f: A => Boolean): List[A] = l match {
+    case Nil => Nil
+    case Cons(x, xs) => if (f(x)) dropWhile(xs, f)
+    else l
+  }
 
   def init[A](l: List[A]): List[A] = sys.error("todo")
 
