@@ -238,4 +238,23 @@ object List { // `List` companion object. Contains functions for creating and wo
     reverse(loop(l1, l2, Nil: List[B]))
   }
 
+  def hasSubsequence[A](sup: List[A], sub: List[A]): Boolean = {
+    def startsWith(l1: List[A], l2: List[A]): Boolean = (l1, l2) match {
+      case (_,Nil) => true
+      case (Nil,_) => false
+      case (Cons(x,xs), Cons(y,ys)) => {
+        if (x == y) startsWith(xs, ys)
+        else false
+      }
+    }
+    (sup, sub) match {
+      case (_, Nil) => true
+      case (Nil, _) => false
+      case (Cons(x, xs), Cons(y, ys)) => {
+        if (y == x) startsWith(xs, ys)
+        else hasSubsequence(xs, sub)
+      }
+    }
+  }
+
 }
