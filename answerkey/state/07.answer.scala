@@ -16,3 +16,4 @@ def sequence[A](fs: List[Rand[A]]): Rand[List[A]] =
 
 def _ints(count: Int): Rand[List[Int]] =
   sequence(List.fill(count)(int))
+`

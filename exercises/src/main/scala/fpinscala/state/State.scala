@@ -30,21 +30,72 @@ object RNG {
       (f(a), rng2)
     }
 
-  def nonNegativeInt(rng: RNG): (Int, RNG) = ???
+  def nonNegativeInt(rng: RNG): (Int, RNG) = {
+    val (next, newRng) = rng.nextInt
+    if (next < 0) {
+      (-(next + 1), newRng)
+    } else (next, newRng)
+  }
 
-  def double(rng: RNG): (Double, RNG) = ???
+  def double(rng: RNG): (Double, RNG) = {
+    val (i, r) = nonNegativeInt(rng)
+    val d = i.toDouble/(Int.MaxValue.toDouble + 1)
+    (d, r)
+  }
 
-  def intDouble(rng: RNG): ((Int,Double), RNG) = ???
+  def doubleViaMap: Rand[Double] = map(nonNegativeInt)(i => i.toDouble/(Int.MaxValue.toDouble + 1))
 
-  def doubleInt(rng: RNG): ((Double,Int), RNG) = ???
+  def intDouble(rng: RNG): ((Int,Double), RNG) = {
+    val (i, r1) = rng.nextInt
+    val (d, r2) = double(r1)
 
-  def double3(rng: RNG): ((Double,Double,Double), RNG) = ???
+    ((i, d), r2)
+  }
 
-  def ints(count: Int)(rng: RNG): (List[Int], RNG) = ???
+  def doubleInt(rng: RNG): ((Double,Int), RNG) = {
+    val (d, r1) = double(rng)
+    val (i, r2) = r1.nextInt
 
-  def map2[A,B,C](ra: Rand[A], rb: Rand[B])(f: (A, B) => C): Rand[C] = ???
 
-  def sequence[A](fs: List[Rand[A]]): Rand[List[A]] = ???
+    ((d, i), r2)
+  }
+
+  def double3(rng: RNG): ((Double,Double,Double), RNG) = {
+    val (d1, r1) = double(rng)
+    val (d2, r2) = double(r1)
+    val (d3, r3) = double(r2)
+
+    ((d1, d2, d3), r3)
+  }
+
+  def ints(count: Int)(rng: RNG): (List[Int], RNG) = {
+    def loop(count: Int, acc: List[Int], innerRng: RNG): (List[Int], RNG) =
+      if (count < 1) (acc, innerRng)
+      else {
+        val (i, newRng) = innerRng.nextInt
+        loop(count - 1, i::acc, newRng )
+      }
+    loop(count, Nil, rng)
+  }
+
+  def map2[A,B,C](ra: Rand[A], rb: Rand[B])(f: (A, B) => C): Rand[C] = rng => {
+    val (a, rng2) = ra(rng)
+    val (b, rng3) = rb(rng2)
+
+    (f(a, b), rng3)
+  }
+
+  def sequence[A](fs: List[Rand[A]]): Rand[List[A]] = rng =>
+    fs.foldRight((List[A](), rng)){ (y, acc) =>
+        val (z, rng1) = y(acc._2)
+        val list1 = z::acc._1
+        (list1, rng1)
+    }
+
+  def sequence2[A](fs: List[Rand[A]]): Rand[List[A]] =
+    fs.foldRight(unit(List[A]())){ (y, acc) =>
+      map2(y, acc)(_::_)
+    }
 
   def flatMap[A,B](f: Rand[A])(g: A => Rand[B]): Rand[B] = ???
 }

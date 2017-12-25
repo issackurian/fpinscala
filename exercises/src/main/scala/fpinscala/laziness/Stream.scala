@@ -240,6 +240,8 @@ object Stream {
       case Some((value, state)) => cons(value, unfold(state)(f))
       case None => empty
     }
+
+    //todo 5.14,15,16
   }
 
 
